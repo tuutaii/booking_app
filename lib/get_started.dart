@@ -40,7 +40,7 @@ class _GetStartedState extends State<GetStarted>
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withOpacity(0.8),
+                  Colors.black.withValues(alpha: 0.8),
                 ],
               ),
             ),
@@ -72,7 +72,7 @@ class _GetStartedState extends State<GetStarted>
                           key: key,
                           text: 'Get started',
                           innerColor: Colors.white,
-                          outerColor: Colors.grey.withOpacity(.8),
+                          outerColor: Colors.grey.withValues(alpha: .8),
                           sliderRotate: false,
                           textStyle: const TextStyle(
                             fontSize: 27,
@@ -85,8 +85,15 @@ class _GetStartedState extends State<GetStarted>
                             });
                             return Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(
-                                  builder: (context) => const RegisterPage()),
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) => const RegisterPage(),
+                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                              ),
                             );
                           },
                           submittedIcon: const Icon(

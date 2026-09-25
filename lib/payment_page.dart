@@ -74,32 +74,30 @@ class PaymentPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            RadioListTile(
-              value: 'MasterCard',
+            RadioGroup<String>(
               groupValue: 'selectedPayment',
               onChanged: (value) {
                 // Implement payment method selection logic
               },
-              title: const Text('Visa'),
-              secondary: Image.asset('assets/images/master_card.png'),
-            ),
-            RadioListTile(
-              value: 'PayPal',
-              groupValue: 'selectedPayment',
-              onChanged: (value) {
-                // Implement payment method selection logic
-              },
-              title: const Text('PayPal'),
-              secondary: Image.asset('assets/images/paypal.png'),
-            ),
-            RadioListTile(
-              value: 'Visa',
-              groupValue: 'selectedPayment',
-              onChanged: (value) {
-                // Implement payment method selection logic
-              },
-              title: const Text('Visa'),
-              secondary: Image.asset('assets/images/visa.png'),
+              child: Column(
+                children: [
+                  RadioListTile(
+                    value: 'MasterCard',
+                    title: const Text('Visa'),
+                    secondary: Image.asset('assets/images/master_card.png'),
+                  ),
+                  RadioListTile(
+                    value: 'PayPal',
+                    title: const Text('PayPal'),
+                    secondary: Image.asset('assets/images/paypal.png'),
+                  ),
+                  RadioListTile(
+                    value: 'Visa',
+                    title: const Text('Visa'),
+                    secondary: Image.asset('assets/images/visa.png'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 32),
             Center(

@@ -1,36 +1,23 @@
-// YOUR_FILE.dart
+import 'package:dio/dio.dart';
 
-import "dart:async";
-import 'package:chopper/chopper.dart';
+class ApiService {
+  static final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ))..interceptors.add(LogInterceptor(
+      request: true,
+      requestHeader: true,
+      requestBody: true,
+      responseHeader: true,
+      responseBody: true,
+      error: true,
+    ));
 
-// This is necessary for the generator to work.
-part "api_service.chopper.dart";
-
-@ChopperApi(
-    baseUrl: 'https://eecf8975-6c57-4990-969b-6a32dc2c0aff.mock.pstmn.io')
-abstract class HotelsService extends ChopperService {
-  static HotelsService create() {
-    final client = ChopperClient(
-        services: [_$HotelsService()],
-        converter: const JsonConverter(),
-        interceptors: [CurlInterceptor()]);
-    return _$HotelsService(client);
+  static Future<Response> getHotels() {
+    return _dio.get('https://eecf8975-6c57-4990-969b-6a32dc2c0aff.mock.pstmn.io/hotels');
   }
 
-  @Get(path: '/hotels')
-  Future<Response> getHotels();
-}
-
-@ChopperApi(baseUrl: 'https://freetestapi.com/api/v1')
-abstract class UserService extends ChopperService {
-  static UserService create() {
-    final client = ChopperClient(
-        services: [_$UserService()],
-        converter: const JsonConverter(),
-        interceptors: [CurlInterceptor()]);
-    return _$UserService(client);
+  static Future<Response> getUser() {
+    return _dio.get('https://freetestapi.com/api/v1/users/1');
   }
-
-  @Get(path: '/users/1')
-  Future<Response> getUser();
 }

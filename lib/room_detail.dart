@@ -353,7 +353,7 @@ class _HotelDetailsPageState extends State<HotelDetailsPage>
                   ),
                   child: Icon(
                     Icons.favorite,
-                    color: const Color(0xfffcd1a8).withOpacity(.4),
+                    color: const Color(0xfffcd1a8).withValues(alpha: .4),
                   ),
                 ),
                 const SizedBox(width: 20),

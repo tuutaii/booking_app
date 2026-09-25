@@ -23,22 +23,18 @@ class CommonTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextField(
         controller: controller,
         readOnly: readOnly,
-        focusNode: FocusNode(canRequestFocus: readOnly),
+        focusNode: focusNode,
+        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: labelText,
           hintText: hintText,
-          hintStyle: const TextStyle(color: Colors.grey),
-          labelStyle: const TextStyle(color: Colors.black, fontSize: 18),
           floatingLabelBehavior: FloatingLabelBehavior.always,
-          prefixIcon: Icon(prefixIcon),
-          suffixIcon: Icon(suffixIcon),
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8.0)),
-          ),
+          prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+          suffixIcon: suffixIcon != null ? Icon(suffixIcon) : null,
         ),
       ),
     );

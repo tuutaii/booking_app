@@ -16,7 +16,7 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: const Text(
           'Login to your account',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       body: Padding(
@@ -54,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
                       value: false,
                       onChanged: (value) {},
                     ),
-                    const Text('Remember me'),
+                    const Text('Remember me', style: TextStyle(color: Colors.white)),
                   ],
                 ),
               ],

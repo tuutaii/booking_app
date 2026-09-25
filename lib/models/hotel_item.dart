@@ -76,14 +76,14 @@ class HotelItem extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.location_on_outlined,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               model?.city ?? '',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                                 fontSize: 15,
                               ),
                             ),
@@ -125,7 +125,7 @@ class HotelItem extends StatelessWidget {
                               Text(
                                 '4.9 (6.8K review)',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                 ),
                               ),
                             ],

@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:ui';
 
-import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
 
 import 'components/shimmer_loading.dart';
@@ -10,6 +11,8 @@ import 'models/hotel_item.dart';
 import 'models/hotel_model.dart';
 import 'models/user_model.dart';
 import 'profile_page.dart';
+import 'providers/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'services/api_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,9 +24,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
-  late HotelsService hotelsService;
-  late UserService userService;
-  Future<Response>? authorResponse, userResponse;
   List<HotelModel>? listModel;
   UserModel? userModel;
   bool isLoading = false;
@@ -32,28 +32,79 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    hotelsService = HotelsService.create();
-    userService = UserService.create();
-    authorResponse = hotelsService.getHotels();
-    userResponse = hotelsService.getHotels();
     _fetchData();
   }
 
   Future<void> _fetchData() async {
-    isLoading = true;
+    setState(() => isLoading = true);
+
+    // Fetch Hotels
     try {
-      final response = await hotelsService.getHotels();
-      final responseUser = await userService.getUser();
-      setState(() {
-        listModel = (response.body as List<dynamic>)
-            .map((item) => HotelModel.fromJson(item as Map<String, dynamic>))
-            .toList();
-        userModel = UserModel.fromJson(responseUser.body);
-        isLoading = false;
-      });
-    } catch (e) {
-      // Handle error
+      final response = await ApiService.getHotels();
+      if (response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 300) {
+        var data = response.data;
+        if (data is String) data = jsonDecode(data);
+        if (data != null) {
+          setState(() {
+            listModel = (data as List<dynamic>)
+                .map(
+                  (item) => HotelModel.fromJson(item as Map<String, dynamic>),
+                )
+                .toList();
+          });
+        }
+      } else {
+        developer.log(
+          'Hotel API failed: status ${response.statusCode}',
+          name: 'HomePage',
+        );
+      }
+    } catch (e, stack) {
+      developer.log(
+        'Error fetching hotels: $e',
+        name: 'HomePage',
+        error: e,
+        stackTrace: stack,
+      );
     }
+
+    // Fetch User
+    try {
+      final responseUser = await ApiService.getUser();
+      if (responseUser.statusCode != null &&
+          responseUser.statusCode! >= 200 &&
+          responseUser.statusCode! < 300) {
+        var data = responseUser.data;
+        if (data is String) data = jsonDecode(data);
+        if (data != null) {
+          final user = UserModel.fromJson(data);
+          setState(() {
+            userModel = user;
+          });
+          if (mounted) {
+            context.read<UserProvider>().updateUser(user);
+          }
+        }
+      } else {
+        developer.log(
+          'User API failed: status ${responseUser.statusCode}',
+          name: 'HomePage',
+        );
+      }
+    } catch (e, stack) {
+      developer.log(
+        'Error fetching user: $e',
+        name: 'HomePage',
+        error: e,
+        stackTrace: stack,
+      );
+    }
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -61,10 +112,7 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       body: Column(
         children: [
-          _HomeHeader(
-            model: userModel,
-            isLoading: isLoading,
-          ),
+          _HomeHeader(model: userModel, isLoading: isLoading),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
             child: Row(
@@ -105,7 +153,7 @@ class _HomePageState extends State<HomePage>
                             width: 350,
                             margin: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
-                              color: Colors.grey[300]!.withOpacity(.3),
+                              color: Colors.grey[300]!.withValues(alpha: .3),
                               borderRadius: BorderRadius.circular(20),
                             ),
                           );
@@ -132,10 +180,7 @@ class _HomePageState extends State<HomePage>
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({
-    this.model,
-    this.isLoading,
-  });
+  const _HomeHeader({this.model, this.isLoading});
 
   final UserModel? model;
   final bool? isLoading;
@@ -149,13 +194,15 @@ class _HomeHeader extends StatelessWidget {
           image: AssetImage('assets/images/home_bg.png'),
           fit: BoxFit.cover,
         ),
-        borderRadius: BorderRadius.only(
-          bottomRight: Radius.circular(50),
-        ),
+        borderRadius: BorderRadius.only(bottomRight: Radius.circular(50)),
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-            24.0, MediaQuery.of(context).padding.top, 24, 0),
+          24.0,
+          MediaQuery.of(context).padding.top,
+          24,
+          0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -164,13 +211,26 @@ class _HomeHeader extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => ProfilePage(userModel: model)),
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const ProfilePage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                    ),
                   );
                 },
-                child: const CircleAvatar(
-                  backgroundImage: NetworkImage(
-                      'https://avatars.githubusercontent.com/u/57899051?v=4'),
+                child: const Hero(
+                  tag: 'profile-avatar',
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      'https://avatars.githubusercontent.com/u/57899051?v=4',
+                    ),
+                  ),
                 ),
               ),
               contentPadding: EdgeInsets.zero,
@@ -184,7 +244,7 @@ class _HomeHeader extends StatelessWidget {
                             height: 15,
                             width: 80,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -245,17 +305,17 @@ class _HomeHeader extends StatelessWidget {
                       height: 50,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(25),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                         ),
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.white.withOpacity(0.15),
-                            Colors.white.withOpacity(0.05),
+                            Colors.white.withValues(alpha: 0.15),
+                            Colors.white.withValues(alpha: 0.05),
                           ],
                         ),
                       ),
@@ -270,10 +330,7 @@ class _HomeHeader extends StatelessWidget {
                           ),
                         ),
                         dense: true,
-                        leading: Icon(
-                          Icons.search,
-                          color: Colors.white,
-                        ),
+                        leading: Icon(Icons.search, color: Colors.white),
                       ),
                     ),
                   ],

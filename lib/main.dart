@@ -1,9 +1,36 @@
 import 'package:booking_home_app/get_started.dart';
+import 'package:booking_home_app/providers/user_provider.dart';
+import 'package:booking_home_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:logging/logging.dart';
+import 'dart:developer' as developer;
+
+void _setupLogging() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((rec) {
+    developer.log(
+      rec.message,
+      time: rec.time,
+      level: rec.level.value,
+      name: rec.loggerName,
+      error: rec.error,
+      stackTrace: rec.stackTrace,
+    );
+  });
+}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MainApp());
+  _setupLogging();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -12,29 +39,8 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        primaryColor: const Color(0xfffcd1a8),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xff2a2a2a),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xff2a2a2a),
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-          elevation: 0,
-        ),
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
-        iconButtonTheme: IconButtonThemeData(
-          style: ButtonStyle(
-            iconColor: WidgetStateProperty.all(Colors.white),
-          ),
-        ),
-        fontFamily: 'Montserrat',
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.darkTheme,
       home: const GetStarted(),
     );
   }

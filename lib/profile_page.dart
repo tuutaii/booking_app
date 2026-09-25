@@ -1,9 +1,10 @@
-import 'package:booking_home_app/models/user_model.dart';
+import 'package:booking_home_app/components/custom_text_field.dart';
+import 'package:booking_home_app/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key, this.userModel});
-  final UserModel? userModel;
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -12,21 +13,41 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _websiteController = TextEditingController();
   int? _age;
+
   @override
   void initState() {
-    _emailController.text = widget.userModel?.email ?? '';
-    _phoneController.text = widget.userModel?.phone ?? '';
-    _age = widget.userModel?.age ?? 0;
     super.initState();
+    // Schedule state initialization after layout
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userModel = context.read<UserProvider>().user;
+      if (userModel != null) {
+        _emailController.text = userModel.email ?? '';
+        _phoneController.text = userModel.phone ?? '';
+        _websiteController.text = userModel.website ?? '';
+        setState(() {
+          _age = userModel.age;
+          if (_age == 0) _age = null;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _phoneController.dispose();
+    _websiteController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final userModel = context.watch<UserProvider>().user;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile Page'),
-      ),
+      appBar: AppBar(title: const Text('Profile Page')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: DefaultTextStyle(
@@ -44,18 +65,22 @@ class _ProfilePageState extends State<ProfilePage> {
                   width: 110,
                   child: Stack(
                     children: [
-                      const CircleAvatar(
-                        radius: 55,
-                        backgroundImage: NetworkImage(
-                            'https://avatars.githubusercontent.com/u/57899051?v=4'),
+                      const Hero(
+                        tag: 'profile-avatar',
+                        child: CircleAvatar(
+                          radius: 55,
+                          backgroundImage: NetworkImage(
+                            'https://avatars.githubusercontent.com/u/57899051?v=4',
+                          ),
+                        ),
                       ),
                       Positioned(
                         right: 0,
                         bottom: 0,
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Color(0xfffcd1a8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -71,120 +96,72 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 8),
               Center(
-                  child: Text(
-                widget.userModel?.name ?? '',
-                style: const TextStyle(
-                  fontSize: 25,
-                  color: Color(0xfffcd1a8),
+                child: Text(
+                  userModel?.name ?? 'Guest User',
+                  style: TextStyle(
+                    fontSize: 25,
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
-              )),
+              ),
               const SizedBox(height: 8),
-              const Text('Your Email'),
-              const SizedBox(height: 8),
-              TextFormField(
+              CustomTextField(
                 controller: _emailController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Enter your email',
-                  hintStyle: const TextStyle(color: Color(0xffABABAB)),
-                  prefixIcon: const Icon(
-                    Icons.email_outlined,
-                    color: Color(0xffABABAB),
-                  ),
-                  labelStyle: const TextStyle(color: Colors.white),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xffABABAB)),
-                  ),
-                ),
+                label: 'Your Email',
+                hint: 'Enter your email',
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
-              const Text('Phone Number'),
-              const SizedBox(height: 8),
-              TextFormField(
+              CustomTextField(
                 controller: _phoneController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Enter your phone Number',
-                  hintStyle: const TextStyle(color: Color(0xffABABAB)),
-                  prefixIcon: const Icon(
-                    Icons.phone_android_rounded,
-                    color: Color(0xffABABAB),
-                  ),
-                  labelStyle: const TextStyle(color: Colors.white),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xffABABAB)),
-                  ),
-                ),
+                label: 'Phone Number',
+                hint: 'Enter your phone Number',
+                prefixIcon: Icons.phone_android_rounded,
+                keyboardType: TextInputType.phone,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               const Text('Age'),
               const SizedBox(height: 8),
-              DropdownButtonFormField(
+              DropdownButtonFormField<int>(
                 menuMaxHeight: 300,
-                value: _age,
+                initialValue: _age,
                 items: List.generate(100, (index) => index + 1)
-                    .map((age) => DropdownMenuItem(
-                          value: age,
-                          child: Text(
-                            age.toString(),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ))
+                    .map(
+                      (age) => DropdownMenuItem(
+                        value: age,
+                        child: Text(
+                          age.toString(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) {
                   setState(() {
                     _age = value;
                   });
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Select your age',
-                  hintStyle: const TextStyle(color: Color(0xffABABAB)),
-                  prefixIcon: const Icon(
-                    Icons.cake,
-                    color: Color(0xffABABAB),
-                  ),
-                  labelStyle: const TextStyle(color: Colors.white),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xffABABAB)),
-                  ),
+                  prefixIcon: Icon(Icons.cake),
                 ),
-                dropdownColor: const Color(0xff333333),
+                dropdownColor: Theme.of(context).scaffoldBackgroundColor,
                 style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 16),
-              const Text('Website'),
-              const SizedBox(height: 8),
-              TextFormField(
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: widget.userModel?.website ?? 'Enter your website',
-                  hintStyle: const TextStyle(color: Color(0xffABABAB)),
-                  prefixIcon: const Icon(
-                    Icons.web,
-                    color: Color(0xffABABAB),
-                  ),
-                  labelStyle: const TextStyle(color: Colors.white),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xffABABAB)),
-                  ),
-                ),
+              CustomTextField(
+                controller: _websiteController,
+                label: 'Website',
+                hint: 'Enter your website',
+                prefixIcon: Icons.web,
+                keyboardType: TextInputType.url,
               ),
               const Spacer(),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xfffcd1a8),
-                    padding: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
                   child: const Text(
                     'Save Changes',
                     style: TextStyle(fontSize: 18, color: Colors.black),

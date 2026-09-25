@@ -16,7 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
       appBar: AppBar(
         title: const Text(
           'Create Your Account',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       body: Padding(
@@ -63,7 +63,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Or sign up with'),
+            const Text('Or sign up with', style: TextStyle(color: Colors.white)),
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -73,7 +73,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ],
             ),
             const SizedBox(height: 10),
-            const Text('Already have an account?'),
+            const Text('Already have an account?', style: TextStyle(color: Colors.white)),
             TextButton(
               onPressed: () {
                 Navigator.push(context,
@@ -100,9 +100,9 @@ class SocialLoginButton extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.grey[200],
+        color: Colors.grey[800],
       ),
-      child: Icon(icon),
+      child: Icon(icon, color: Colors.white),
     );
   }
 }

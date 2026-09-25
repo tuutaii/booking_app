@@ -2,5 +2,8 @@
     "cSpell.words": [
         "LTRB",
         "polylines"
-    ]
+    ],
+    "dart.debugExternalPackageLibraries": true,
+    "dart.debugSdkLibraries": false,
+    "dart.openDevTools": "flutter"
 }
